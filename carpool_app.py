@@ -20,10 +20,10 @@ app = FastAPI()
 
 @app.on_event("startup")
 def startup_db_client():
-    # app.mongodb_client = MongoClient("mongodb+srv://kevinkim9443:9443@carpool.y1w4d3g.mongodb.net/?retryWrites=true&w=majority",tlsCAFile=certifi.where())
-    # app.database = app.mongodb_client["Carpool"]
-    app.mongodb_client = MongoClient("mongodb+srv://root:root@cluster0.tenpf2n.mongodb.net/?retryWrites=true&w=majority", tlsCAFile=certifi.where())
-    app.database = app.mongodb_client["Cluster0"]
+    app.mongodb_client = MongoClient("mongodb+srv://kevinkim9443:0509@carpool.3bukgzs.mongodb.net/?retryWrites=true&w=majority",tlsCAFile=certifi.where())
+    app.database = app.mongodb_client["Carpool"]
+    # app.mongodb_client = MongoClient("mongodb+srv://root:root@cluster0.tenpf2n.mongodb.net/?retryWrites=true&w=majority", tlsCAFile=certifi.where())
+    # app.database = app.mongodb_client["Cluster0"]
     print("Connected to the MongoDB database!")
 
 @app.on_event("shutdown")
@@ -164,7 +164,7 @@ async def delete_party(party_id: str):
         return {"message": "Party not found."}
 
 # find ID
-@app.post("/find_user")
+@app.post("/user/find")
 async def find_user(request: email):
     user = app.database.user.find_one({"email": request.email})
     
@@ -172,10 +172,10 @@ async def find_user(request: email):
         return {"message": "There is no user with such email address"}
  
     username = user["user_name"]   
-    return{"message":"Your username is" + username}
+    return{"message":"Your username is " + username}
 
  # change password
-@app.put("/edit_password")
+@app.put("/user/login/edit_password")
 async def edit_password(request: EP):
     user = app.database.user.find_one({"email": request.email})
 
@@ -187,8 +187,8 @@ async def edit_password(request: EP):
     result = app.database.user.update_one({"_id": ObjectId(user["_id"])}, {"$set": {"password": hashed_pw}})   # 1번째 param: 수정할 document 추적, 2번째 param: 덮어씌울 데이터
 
 
-#get_party
-@app.get("/get_party_list")
+#find_party
+@app.get("/my_page/party/find")
 # async def get_party_list():
 #     docs =  app.database.party.find()
 #     all_party_list = []
@@ -226,7 +226,7 @@ async def get_party_list():
         print(each)
         
 #current_party
-@app.get("/my_page/get_current_party/{user_id}")
+@app.get("/my_page/party/find/current/{user_id}")
 async def get_current_party(user_id):
     docs = app.database.party.find({'party_recruiter_id': user_id})
     crt_time = str(dt.datetime.now())
@@ -237,8 +237,8 @@ async def get_current_party(user_id):
         if party["date_time"] > crt_time:
             print(party)
 
-#current_party
-@app.get("/my_page/get_past_party/{user_id}")
+#past_party
+@app.get("/my_page/party/find/past/{user_id}")
 async def get_past_party(user_id):
     docs = app.database.party.find({'party_recruiter_id': user_id})
     crt_time = str(dt.datetime.now())
@@ -250,14 +250,14 @@ async def get_past_party(user_id):
             print(party)
 
 #one_party
-@app.get("/party/{party_id}")
+@app.get("/my_page/party/find/one/{party_id}")
 async def get_one_party(party_id: str):
     docs =  app.database.party.find_one({'_id': ObjectId(party_id)})
     docs["_id"] = str(docs["_id"])
     print(docs)
 
 #join_party
-@app.put("/party/{party_id}/{user_id}")
+@app.put("/party/join/{party_id}/{user_id}")
 async def join_party(party_id: str, user_id: str):
     docs =  app.database.party.find_one({'_id': ObjectId(party_id)})
     docs["party_member_id"].append(user_id)
@@ -320,7 +320,6 @@ async def give_penalty(reported_user_id: str):
 #         if party["date_time"].split(" ").index(0) = date_time
 #             docs = str(docs["date_time"])
 
-#
 @app.get("/party/sort/")
 async def sort_party(party_type: str = Query(None), destination: str = Query(None), date: str = Query(None), time: str = Query(None)):
     party_list = []
@@ -365,13 +364,6 @@ async def sort_party(party_type: str = Query(None), destination: str = Query(Non
 
     print(final_party)
         
-    
-#hw - date,time JWT
-
-
-
-
-
     
 
 
