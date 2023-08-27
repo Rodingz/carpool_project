@@ -8,13 +8,7 @@ import certifi
 import datetime as dt
 
 
-pwd_cxt = CryptContext(schemes=["bcrypt"],deprecated="auto")
 
-class Hash():
-   def bcrypt(password:str):    # Input: User가 입력한 기존 비밀번호, Output: Hashing된 비밀번호
-      return pwd_cxt.hash(password)
-   def verify(hashed, normal):  # Input: User가 입력한 기존 비밀번호와 그 비밀번호를 Hashing한 비밀번호, Output: True / False
-      return pwd_cxt.verify(normal, hashed)
 
 app = FastAPI()
 
@@ -30,38 +24,8 @@ def startup_db_client():
 def shutdown_db_client():
     app.mongodb_client.close()
 
-class User(BaseModel):
-    user_name: str
-    real_name: str
-    password: str
-    phone_number: str
-    email: str
-    student_email: str
-    car_number: int
-    car_color: str
-    car_type: str
-    car_license: str
-    homeroom: str
-    user_type: str
-    warning: list[str]
-    penalty: int
 
-class User_login(BaseModel):
-    username: str
-    password: str
 
-class Party(BaseModel):
-    date_time: str
-    destination: str
-    departure: str
-    max_recruitment: int
-    cur_recruitment: int
-    party_type: str
-    party_recruiter_id: str
-    party_member_id: list[str]
-
-class email(BaseModel):
-    email:str
 
 class EP(BaseModel):
     email: str
