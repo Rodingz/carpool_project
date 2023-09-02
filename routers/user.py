@@ -61,7 +61,7 @@ async def edit_user(user_id: str, edited_user: User):
         hashed_pw = Hash.bcrypt(edited_user.password)
         data["password"] = hashed_pw
 
-    result = app.database.user.update_one({"_id": ObjectId(user_id)}, {"$set": data})   # 1번째 param: 수정할 document 추적, 2번째 param: 덮어씌울 데이터
+    result = router.database.user.update_one({"_id": ObjectId(user_id)}, {"$set": data})   # 1번째 param: 수정할 document 추적, 2번째 param: 덮어씌울 데이터
 
     if result.modified_count == 1:
         return {"message": "User updated successfully."}
@@ -99,7 +99,7 @@ async def edit_password(request: EP):
     
     hashed_pw = Hash.bcrypt(request.password)
 
-    result = app.database.user.update_one({"_id": ObjectId(user["_id"])}, {"$set": {"password": hashed_pw}})   # 1번째 param: 수정할 document 추적, 2번째 param: 덮어씌울 데이터
+    result = router.database.user.update_one({"_id": ObjectId(user["_id"])}, {"$set": {"password": hashed_pw}})   # 1번째 param: 수정할 document 추적, 2번째 param: 덮어씌울 데이터
 
 # warning 
 @router.put("/warning/{reporter_user_id}/{reported_user_id}")
@@ -107,11 +107,6 @@ async def give_warning(reporter_user_id: str, reported_user_id: str):
     docs = router.database.user.find_one({'_id': ObjectId(reported_user_id)})
     docs["warning"].append(reporter_user_id)
     result = router.database.user.update_one({"_id": ObjectId(reported_user_id)}, {"$set": docs})
-
-# penalty --> warning 추가될때마다 실행
-@router.put("/penalty/{reported_user_id}")
-async def give_penalty(reported_user_id: str):
-    docs = router.database.user.find_one({'_id': ObjectId(reported_user_id)})
     warning_list = docs["warning"] 
     list = []
     for i in warning_list:
@@ -121,6 +116,7 @@ async def give_penalty(reported_user_id: str):
             continue
     if len(list) >= 3:
         docs["penalty"] +=1
+        docs['warning'].clear 
         result = router.database.user.update_one({"_id": ObjectId(reported_user_id)}, {"$set": docs})
 
 # 정지 시키는 api 필요
