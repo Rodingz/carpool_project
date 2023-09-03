@@ -6,7 +6,6 @@ class User(BaseModel):
     password: str
     phone_number: str
     email: str
-    student_email: str
     car_number: int
     car_color: str
     car_type: str

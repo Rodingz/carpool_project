@@ -10,8 +10,8 @@ from routers import user, party
 
 app = FastAPI()
 
-app.include_router(party.router, prefix="/party", tags=["party"])
-app.include_router(user.router, prefix="/user", tags=["user"])
+app.include_router(party.router)
+app.include_router(user.router)
 
 
 @app.on_event("startup")
