@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from pymongo import MongoClient
 from pydantic import BaseModel
 from bson.objectid import ObjectId
@@ -7,11 +7,15 @@ import os
 import certifi
 import datetime as dt
 from models.party import Party, LatLng
-
+# from routers.user import get_current_active_user
 router = APIRouter(
     prefix ='/party', 
     tags=['party'],
 )
+
+router.mongodb_client = MongoClient("mongodb+srv://kevinkim9443:0509@carpool.3bukgzs.mongodb.net/?retryWrites=true&w=majority",tlsCAFile=certifi.where())
+router.database = router.mongodb_client["Carpool"]
+
 #party create
 
 @router.post("/create/{user_id}")
@@ -186,7 +190,7 @@ async def sort_party(party_type: str = Query(None), destination: str = Query(Non
     print(final_party)
 
 
-#party_search
+# party_search
 # @router.get("/party/search/")
 # async def search_party(search_data: LatLng = Query(None)):
 #     docs =  router.database.party.find()

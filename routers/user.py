@@ -17,6 +17,7 @@ from jose import JWTError, jwt
 from typing_extensions import Annotated
 
 
+
 SECRET_KEY = "2d7459bf7a03b0f5479a677f31b599cd0107088886c4aa95114ede8dc7e978c2"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -25,14 +26,16 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-
-class TokenData(BaseModel):
-    username: Union[str, None] = None
-
 router = APIRouter(
     prefix ='/user', 
     tags=['user'],
 )
+
+router.mongodb_client = MongoClient("mongodb+srv://kevinkim9443:0509@carpool.3bukgzs.mongodb.net/?retryWrites=true&w=majority",tlsCAFile=certifi.where())
+router.database = router.mongodb_client["Carpool"]
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
 #Hashing
 pwd_cxt = CryptContext(schemes=["bcrypt"],deprecated="auto")
 
@@ -66,7 +69,6 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         user = router.database.user.find_one({"email": email})
         if not user:
             raise credentials_exception
-        token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
     if user is None:
@@ -119,9 +121,12 @@ async def user_login(login_user: User_login):
     
 #logout
 
+
+
+
 # edit_user
 @router.put("/edit/{user_id}")
-async def edit_user(user_id: str, edited_user: User):
+async def edit_user(user_id: str, edited_user: User, current_user: User = Depends(get_current_active_user)):
 
     data = edited_user.dict(exclude_unset=True)
 
@@ -213,32 +218,3 @@ async def give_warning(reporter_user_id: str, reported_user_id: str):
 #         if party["date_time"].split(" ").index(0) = date_time
 #             docs = str(docs["date_time"])
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-@app.post("/token", response_model=Token)
-async def login_for_access_token(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
-):
-    user = authenticate_user(fake_users_db, form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
