@@ -9,7 +9,7 @@ class User(BaseModel):
     car_number: int
     car_color: str
     car_type: str
-    car_license: str
+    # car_license: str
     homeroom: str
     user_type: str
     warning: list[str]

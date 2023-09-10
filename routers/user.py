@@ -82,7 +82,7 @@ async def get_current_active_user(
     return current_user
 
 
-# crete use
+# crete user
 @router.post("/create")
 async def create_user(new_user: User):
     data = new_user.dict()
@@ -119,7 +119,7 @@ async def user_login(login_user: User_login):
     
 #logout
 
-# edit user
+# edit_user
 @router.put("/edit/{user_id}")
 async def edit_user(user_id: str, edited_user: User):
 

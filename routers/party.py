@@ -6,7 +6,7 @@ from passlib.context import CryptContext
 import os
 import certifi
 import datetime as dt
-from models.party import Party
+from models.party import Party, LatLng
 
 router = APIRouter(
     prefix ='/party', 
@@ -18,6 +18,7 @@ router = APIRouter(
 async def create_party(user_id: str, new_party:Party):
     data = new_party.dict()
     data["party_recruiter_id"] = user_id
+    data["cur_recruitment"] = 0
     result = router.database.party.insert_one(data)
 
     return {"message": "Party registration is successful."}
@@ -121,15 +122,73 @@ async def get_one_party(party_id: str):
 @router.put("/join/{party_id}/{user_id}")
 async def join_party(party_id: str, user_id: str):
     docs =  router.database.party.find_one({'_id': ObjectId(party_id)})
-    docs["party_member_id"].append(user_id)
-    docs["cur_recruitment"] += 1
+    if docs["cur_recruitment"] >= docs["max_recruitment"]:
+        print("Party is full")
+    else:
+        docs["party_member_id"].append(user_id)
+        docs["cur_recruitment"] += 1
     result = router.database.party.update_one({"_id": ObjectId(party_id)}, {"$set": docs})
 
-# withdraw party 숙제
+# withdraw party
 @router.put("/drop/{party_id}/{user_id}")
 async def drop_party(party_id: str, user_id: str):
     docs =  router.database.party.find_one({'_id': ObjectId(party_id)})
     docs["party_member_id"].remove(user_id)
     docs["cur_recruitment"] -= 1
     result = router.database.party.update_one({"_id": ObjectId(party_id)}, {"$set": docs})
+
+
+
+# party sort
+
+@router.get("/party/sort/")
+async def sort_party(party_type: str = Query(None), destination: str = Query(None), date: str = Query(None), time: str = Query(None)):
+    party_list = []
+    if party_type is not None and destination is not None:
+        party = router.database.party.find({ "$and": [{"destination": destination},{"party_type":party_type}]})
+        for each in party:
+            party_list.append(each)
+   
+    if party_type is not None and destination is None:
+        party = router.database.party.find({"party_type":party_type})
+        for each in party:
+            party_list.append(each)
+
+    
+    if party_type is None and destination is None:
+        party = router.database.party.find()
+        for each in party:
+            party_list.append(each)
+
+    
+    if party_type is None and destination is not None:
+        party = router.database.party.find({"destination":destination})
+        for each in party:
+            party_list.append(each)
+    
+    final_party = []
+    for i in party_list:
+        if date is not None and time is None:    
+            if i["date_time"].split(" ")[0] >= date:
+                final_party.append(i)
+        
+        if date is None and time is not None:
+            if i["date_time"].split(" ")[1][0:7] >= time:
+                if i["date_time"].split(" ")[0] >= dt.today():    
+                    final_party.append(i)
+
+        if date is not None and time is not None:
+            if i["date_time"].split(" ")[0] >= date:
+                if i["date_time"].split(" ")[1][0:7] >= time:
+                    final_party.append(i)
+    
+
+    print(final_party)
+
+
+#party_search
+@router.get("/party/search/")
+async def search_party(search_data: LatLng = Query(None)):
+    docs =  router.database.party.find()
+
 
