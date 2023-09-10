@@ -26,3 +26,4 @@ class EP(BaseModel):
     email: str
     password: str
 
+

@@ -187,8 +187,17 @@ async def sort_party(party_type: str = Query(None), destination: str = Query(Non
 
 
 #party_search
-@router.get("/party/search/")
-async def search_party(search_data: LatLng = Query(None)):
-    docs =  router.database.party.find()
+# @router.get("/party/search/")
+# async def search_party(search_data: LatLng = Query(None)):
+#     docs =  router.database.party.find()
+    
+#     latitude = docs["destination"]["latitude"]
+#     longitude = docs["destination"]["latitude"]
+#     position = (latitude,longitude)
+#     condition = (
+#         Q(latitude__range  = (latitude - 0.01, latitude + 0.01)) |
+#         Q(longitude__range = (longitude - 0.015, longitude + 0.015))
+#             )
+
 
 
