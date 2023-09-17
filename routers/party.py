@@ -194,10 +194,20 @@ async def sort_party(party_type: str = Query(None), destination: str = Query(Non
                     final_party.append(i)
     
 
-    print(final_party)
+    return final_party
 
 # party search
-# @router.get("/party/search/")
-# async def search_party()
+@router.get("/party/search/{Lat}/{Lng}")
+async def search_party(Lat: float , Lng: float):
+    party = router.database.party.find(
+        {
+            "$and": [
+                {"Lat": {"$gt": Lat -1 , "$lt": Lat +1}}, # 값 수정하기
+                {"Lng": {"$gt": Lng -1 , "$lt": Lng +1}}
+            ]
+        }
+    )
+    return party
+
 
 

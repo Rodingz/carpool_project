@@ -10,8 +10,6 @@ class Party(BaseModel):
     party_type: str
     party_recruiter_id: str
     party_member_id: list[str]
-    party_coordinate: list[float]
+    party_Lat: float
+    party_Lng: float
 
-# class LatLng(BaseModel):
-#     Lat: float
-#     Lng: float
