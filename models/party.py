@@ -1,8 +1,5 @@
 from pydantic import BaseModel
 
-class LatLng(BaseModel):
-    latitude: str
-    longitude: str
 
 class Party(BaseModel):
     date_time: str
@@ -13,4 +10,8 @@ class Party(BaseModel):
     party_type: str
     party_recruiter_id: str
     party_member_id: list[str]
+    party_coordinate: list[float]
 
+# class LatLng(BaseModel):
+#     Lat: float
+#     Lng: float

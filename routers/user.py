@@ -142,7 +142,7 @@ async def edit_user(user_id: str, edited_user: User, current_user: User = Depend
         return {"message": "User not found."}
 #delete user
 @router.delete("/delete/{user_id}")
-async def delete_user(user_id: str):
+async def delete_user(user_id: str, current_user: User = Depends(get_current_active_user)):
 
     result = router.database.user.delete_one({"_id": ObjectId(user_id)})   # 삭제할 document 추적
 
@@ -153,7 +153,7 @@ async def delete_user(user_id: str):
 
 # find ID
 @router.post("/find")
-async def find_user(request: email):
+async def find_user(request: email, current_user: User = Depends(get_current_active_user)):
     user = router.database.user.find_one({"email": request.email})
     
     if user == None:
@@ -164,7 +164,7 @@ async def find_user(request: email):
 
  # change password
 @router.put("/login/edit_password")
-async def edit_password(request: EP):
+async def edit_password(request: EP, current_user: User = Depends(get_current_active_user)):
     user = router.database.user.find_one({"email": request.email})
 
     if user == None:
@@ -176,7 +176,7 @@ async def edit_password(request: EP):
 
 # warning 
 @router.put("/warning/{reporter_user_id}/{reported_user_id}")
-async def give_warning(reporter_user_id: str, reported_user_id: str):
+async def give_warning(reporter_user_id: str, reported_user_id: str, current_user: User = Depends(get_current_active_user)):
     docs = router.database.user.find_one({'_id': ObjectId(reported_user_id)})
     docs["warning"].append(reporter_user_id)
     result = router.database.user.update_one({"_id": ObjectId(reported_user_id)}, {"$set": docs})

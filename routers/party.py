@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 from pymongo import MongoClient
 from pydantic import BaseModel
 from bson.objectid import ObjectId
@@ -6,8 +6,15 @@ from passlib.context import CryptContext
 import os
 import certifi
 import datetime as dt
-from models.party import Party, LatLng
-# from routers.user import get_current_active_user
+from models.party import Party
+from models.user import User
+from datetime import datetime, timedelta
+from typing import Union
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import JWTError, jwt
+from typing_extensions import Annotated
+from routers.user import get_current_active_user
+
 router = APIRouter(
     prefix ='/party', 
     tags=['party'],
@@ -19,7 +26,7 @@ router.database = router.mongodb_client["Carpool"]
 #party create
 
 @router.post("/create/{user_id}")
-async def create_party(user_id: str, new_party:Party):
+async def create_party(user_id: str, new_party:Party, current_user: User = Depends(get_current_active_user)):
     data = new_party.dict()
     data["party_recruiter_id"] = user_id
     data["cur_recruitment"] = 0
@@ -30,7 +37,7 @@ async def create_party(user_id: str, new_party:Party):
 #party edit
 
 @router.put("/edit/{party_id}")
-async def edit_party(party_id: str, edited_party: Party):
+async def edit_party(party_id: str, edited_party: Party, current_user: User = Depends(get_current_active_user)):
 
     data = edited_party.dict(exclude_unset=True)
 
@@ -44,7 +51,7 @@ async def edit_party(party_id: str, edited_party: Party):
 #party delete
 
 @router.delete("/delete/{party_id}")
-async def delete_party(party_id: str):
+async def delete_party(party_id: str, current_user: User = Depends(get_current_active_user)):
 
     result = router.database.party.delete_one({"_id": ObjectId(party_id)})   # 삭제할 document 추적
 
@@ -54,7 +61,7 @@ async def delete_party(party_id: str):
         return {"message": "Party not found."}
 
 #find_party
-@router.get("/my_page/find")
+@router.get("/find")
 # async def get_party_list():
 #     docs =  app.database.party.find()
 #     all_party_list = []
@@ -92,7 +99,7 @@ async def get_party_list():
         print(each)
         
 #current_party
-@router.get("/my_page/find/current/{user_id}")
+@router.get("/find/current/{user_id}")
 async def get_current_party(user_id):
     docs = router.database.party.find({'party_recruiter_id': user_id})
     crt_time = str(dt.datetime.now())
@@ -104,7 +111,7 @@ async def get_current_party(user_id):
             print(party)
 
 #past_party
-@router.get("/my_page/find/past/{user_id}")
+@router.get("/find/past/{user_id}")
 async def get_past_party(user_id):
     docs = router.database.party.find({'party_recruiter_id': user_id})
     crt_time = str(dt.datetime.now())
@@ -116,7 +123,7 @@ async def get_past_party(user_id):
             print(party)
 
 #one_party
-@router.get("/my_page/find/one/{party_id}")
+@router.get("/find/one/{party_id}")
 async def get_one_party(party_id: str):
     docs =  router.database.party.find_one({'_id': ObjectId(party_id)})
     docs["_id"] = str(docs["_id"])
@@ -124,7 +131,7 @@ async def get_one_party(party_id: str):
 
 #join_party
 @router.put("/join/{party_id}/{user_id}")
-async def join_party(party_id: str, user_id: str):
+async def join_party(party_id: str, user_id: str, current_user: User = Depends(get_current_active_user)):
     docs =  router.database.party.find_one({'_id': ObjectId(party_id)})
     if docs["cur_recruitment"] >= docs["max_recruitment"]:
         print("Party is full")
@@ -135,7 +142,7 @@ async def join_party(party_id: str, user_id: str):
 
 # withdraw party
 @router.put("/drop/{party_id}/{user_id}")
-async def drop_party(party_id: str, user_id: str):
+async def drop_party(party_id: str, user_id: str, current_user: User = Depends(get_current_active_user)):
     docs =  router.database.party.find_one({'_id': ObjectId(party_id)})
     docs["party_member_id"].remove(user_id)
     docs["cur_recruitment"] -= 1
@@ -189,19 +196,8 @@ async def sort_party(party_type: str = Query(None), destination: str = Query(Non
 
     print(final_party)
 
-
-# party_search
+# party search
 # @router.get("/party/search/")
-# async def search_party(search_data: LatLng = Query(None)):
-#     docs =  router.database.party.find()
-    
-#     latitude = docs["destination"]["latitude"]
-#     longitude = docs["destination"]["latitude"]
-#     position = (latitude,longitude)
-#     condition = (
-#         Q(latitude__range  = (latitude - 0.01, latitude + 0.01)) |
-#         Q(longitude__range = (longitude - 0.015, longitude + 0.015))
-#             )
-
+# async def search_party()
 
 
