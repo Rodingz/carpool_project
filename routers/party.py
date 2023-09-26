@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from bson.objectid import ObjectId
 from passlib.context import CryptContext
 import os
+import math
 import certifi
 import datetime as dt
 from models.party import Party
@@ -96,7 +97,7 @@ async def get_party_list():
             party_list.append(party)
     
     for each in party_list:
-        print(each)
+        return each
         
 #current_party
 @router.get("/find/current/{user_id}")
@@ -108,7 +109,7 @@ async def get_current_party(user_id):
         party["_id"] = str(party["_id"]) 
 
         if party["date_time"] > crt_time:
-            print(party)
+            return party
 
 #past_party
 @router.get("/find/past/{user_id}")
@@ -120,14 +121,14 @@ async def get_past_party(user_id):
         party["_id"] = str(party["_id"]) 
 
         if party["date_time"] < crt_time:
-            print(party)
+            return party
 
 #one_party
 @router.get("/find/one/{party_id}")
 async def get_one_party(party_id: str):
     docs =  router.database.party.find_one({'_id': ObjectId(party_id)})
     docs["_id"] = str(docs["_id"])
-    print(docs)
+    return docs
 
 #join_party
 @router.put("/join/{party_id}/{user_id}")
@@ -197,17 +198,24 @@ async def sort_party(party_type: str = Query(None), destination: str = Query(Non
     return final_party
 
 # party search
+
 @router.get("/party/search/{Lat}/{Lng}")
 async def search_party(Lat: float , Lng: float):
+  # 1km 구간
+    # lat_change = 1 / 111.2
+    # lng_change = abs(math.cos(Lat * (math.pi / 180)))
+    lat_change = 1
+    lng_change = 1
     party = router.database.party.find(
         {
             "$and": [
-                {"Lat": {"$gt": Lat -1 , "$lt": Lat +1}}, # 값 수정하기
-                {"Lng": {"$gt": Lng -1 , "$lt": Lng +1}}
+                {"party_Lat": {"$gt": Lat - lat_change , "$lt": Lat + lat_change}}, # 값 수정하기
+                {"party_Lng": {"$gt": Lng - lng_change , "$lt": Lng + lng_change}}
             ]
         }
     )
-    return party
+    print(party)
 
 
-
+# 36.1004
+# 129.3882
