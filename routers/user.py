@@ -124,7 +124,7 @@ async def user_login(login_user: User_login):
 
 
 
-# edit_user
+#edit_user
 @router.put("/edit/{user_id}")
 async def edit_user(user_id: str, edited_user: User, current_user: User = Depends(get_current_active_user)):
 
@@ -151,7 +151,7 @@ async def delete_user(user_id: str, current_user: User = Depends(get_current_act
     else:
         return {"message": "User not found."}
 
-# find ID
+#find ID
 @router.post("/find")
 async def find_user(request: email, current_user: User = Depends(get_current_active_user)):
     user = router.database.user.find_one({"email": request.email})
